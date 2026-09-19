@@ -1,4 +1,4 @@
-// src/components/LoginForm.tsx - Fixed Dark Theme Colors Only
+// src/components/LoginForm.tsx - Refined visuals, same theme
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axiosInstance";
 import { io } from "socket.io-client";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   TrendingUp,
@@ -16,6 +15,7 @@ import {
   Newspaper,
   Clock,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,21 +56,19 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  /* ------------ auth form state ------------ */
+  const currentYear = new Date().getFullYear();
+
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
 
-  /* ------------ top‑level view ------------ */
   type View = "auth" | "news" | "leaderboard" | "shares";
   const [view, setView] = useState<View>("auth");
 
-  /* ------------ data for the three views --- */
   const [news, setNews] = useState<NewsItem[]>([]);
   const [shares, setShares] = useState<Share[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
   const { toast } = useToast();
 
-  /* ========== ENV secrets for signup ======== */
   const EMPLOYEE_SECRET = import.meta.env.VITE_EMPLOYEE_SECRET;
   const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET;
 
@@ -90,7 +88,6 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
     };
     fetchInitial();
 
-    /* live share + news stream */
     socket.on("share:update", (upd: Share) =>
       setShares((prev) =>
         prev.some((s) => s._id === upd._id)
@@ -205,25 +202,47 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
   };
 
   /* ────────────────────────────────────────── */
-  /*            REUSABLE VIEWS WITH DARK THEME  */
+  /*            REUSABLE VIEWS                  */
   /* ────────────────────────────────────────── */
 
   const MarketNews = () => {
     if (news.length === 0) {
       return (
         <div
-          className={`rounded-2xl border-2 border-dashed p-8 text-center shadow-sm transition-all duration-300 ${
+          className={`relative rounded-2xl border-2 border-dashed p-10 text-center shadow-sm overflow-hidden ${
             isDark
-              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-gray-400 hover:border-[#9303C5]/50"
-              : "bg-gradient-to-br from-slate-50 to-slate-100 text-slate-500 hover:border-purple-200"
+              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-gray-400"
+              : "bg-gradient-to-br from-slate-50 to-slate-100 text-slate-500"
           }`}
         >
-          <div className="flex flex-col items-center gap-3">
-            <Newspaper className="h-12 w-12 opacity-40" />
-            <p className="text-base font-medium">
-              No market news available yet 📰
+          {/* Decorative blobs — colors from existing palette */}
+          <div
+            className={`absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl ${
+              isDark ? "bg-[#9303C5]/20" : "bg-purple-200/40"
+            }`}
+          />
+          <div
+            className={`absolute -bottom-12 -left-12 w-40 h-40 rounded-full blur-3xl ${
+              isDark ? "bg-[#6b02b3]/20" : "bg-indigo-200/40"
+            }`}
+          />
+
+          <div className="relative flex flex-col items-center gap-3">
+            <div
+              className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+                isDark
+                  ? "bg-[#9303C5]/20 border border-[#9303C5]/40"
+                  : "bg-white border border-purple-200"
+              }`}
+            >
+              <Newspaper className="h-7 w-7 opacity-70" />
+            </div>
+            <p className="text-base font-semibold">
+              No market news available yet
             </p>
-            <p className="text-xs opacity-60">Check back later for updates</p>
+            <p className="text-xs opacity-60">
+              Check back later for live updates
+            </p>
           </div>
         </div>
       );
@@ -233,28 +252,45 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
 
     return (
       <div className="space-y-6">
-        {/* 🔥 BREAKING NEWS - Hero Style */}
+        {/* 🔥 BREAKING NEWS - Hero */}
         <div
-          className={`relative rounded-2xl overflow-hidden shadow-2xl ${
+          className={`relative rounded-3xl overflow-hidden shadow-2xl ${
             isDark
-              ? "bg-gradient-to-br from-[#2a0140] via-[#1a0033] to-[#4a0163] border border-[#9303C5]"
+              ? "bg-gradient-to-br from-[#2a0140] via-[#1a0033] to-[#4a0163] border border-[#9303C5]/60"
               : "bg-gradient-to-br from-red-600 via-red-500 to-red-600 border border-red-400"
           }`}
         >
-          {/* Animated Background Glow */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl" />
-            <div className="absolute bottom-0 -right-4 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl" />
+          {/* Animated Glow */}
+          <div className="absolute inset-0 opacity-40 pointer-events-none">
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+            <div
+              className="absolute bottom-0 -right-4 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"
+              style={{ animationDelay: "1s" }}
+            />
           </div>
+
+          {/* Fine grid overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.08] pointer-events-none"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+              maskImage:
+                "radial-gradient(ellipse at 30% 50%, black 40%, transparent 80%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse at 30% 50%, black 40%, transparent 80%)",
+            }}
+          />
 
           {/* Breaking Badge */}
           <div className="absolute top-4 right-4 z-10">
             <div className="flex items-center gap-2">
               <span className="relative flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
               </span>
-              <span className="bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              <span className="bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg ring-1 ring-white/20">
                 🔥 BREAKING NEWS
               </span>
             </div>
@@ -264,11 +300,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
           <div className="relative z-10 p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <h3
-                  className={`text-lg sm:text-2xl md:text-3xl font-bold leading-tight ${
-                    isDark ? "text-white" : "text-white"
-                  }`}
-                >
+                <h3 className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight text-white drop-shadow">
                   {breaking.headline}
                 </h3>
                 <div className="flex items-center gap-2 mt-3">
@@ -286,31 +318,38 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
           </div>
         </div>
 
-        {/* 📰 OTHER MARKET NEWS - Card Grid */}
+        {/* 📰 OTHER NEWS - Card Grid */}
         {others.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {others.map((n, idx) => (
-              <div
+              <motion.div
                 key={n._id}
-                className={`group relative rounded-xl overflow-hidden shadow-md transition-all duration-300 ${
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05, duration: 0.35 }}
+                className={`group relative rounded-2xl overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 ${
                   isDark
-                    ? "bg-[#02060E]/80 border border-[#9303C5]/30 hover:border-[#9303C5]/60 hover:shadow-lg hover:shadow-[#9303C5]/20"
-                    : "bg-white border border-gray-200 hover:shadow-xl hover:border-purple-200"
+                    ? "bg-[#02060E]/80 border border-[#9303C5]/30 hover:border-[#9303C5]/70 hover:shadow-lg hover:shadow-[#9303C5]/25"
+                    : "bg-white border border-gray-200 hover:shadow-xl hover:border-purple-300"
                 }`}
               >
-                {/* Hover Gradient Overlay */}
                 <div
                   className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
                     isDark
-                      ? "bg-gradient-to-br from-[#9303C5]/10 via-transparent to-transparent"
-                      : "bg-gradient-to-br from-purple-100/50 via-transparent to-transparent"
+                      ? "bg-gradient-to-br from-[#9303C5]/15 via-transparent to-transparent"
+                      : "bg-gradient-to-br from-purple-100/60 via-transparent to-transparent"
                   }`}
                 />
 
                 <div className="relative p-5">
-                  {/* Headline */}
+                  {/* Top accent */}
+                  <div
+                    className={`absolute top-0 left-5 right-5 h-px ${
+                      isDark ? "bg-[#9303C5]/40" : "bg-purple-200"
+                    }`}
+                  />
                   <h4
-                    className={`text-base font-semibold leading-snug line-clamp-3 mb-3 ${
+                    className={`text-base font-semibold leading-snug line-clamp-3 ${
                       isDark
                         ? "text-white group-hover:text-[#d8b4fe]"
                         : "text-gray-800 group-hover:text-purple-700"
@@ -319,30 +358,37 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                     {n.headline}
                   </h4>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
     );
   };
+
   const LiveLeaderboard = () => (
     <div
       className={`rounded-3xl border shadow-2xl overflow-hidden ${
         isDark ? "bg-[#02060E]/80 border-[#9303C5]/40" : "bg-white"
       }`}
     >
-      {/* Header with Live Indicator Animation - Larger for Projector */}
+      {/* Header */}
       <div
-        className={`px-8 py-6 border-b ${
+        className={`px-6 sm:px-8 py-6 border-b relative overflow-hidden ${
           isDark
             ? "border-[#9303C5]/40 bg-gradient-to-r from-[#2a0140] to-[#1a0033]"
             : "bg-gradient-to-r from-[#F5F2FF] to-white"
         }`}
       >
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Subtle glow */}
+        <div
+          className={`absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl ${
+            isDark ? "bg-[#9303C5]/20" : "bg-purple-200/40"
+          }`}
+        />
+
+        <div className="relative flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            {/* Animated Live Indicator - Larger */}
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
@@ -364,7 +410,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
               🏆 Leaderboard
             </h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div
               className={`text-sm px-4 py-2 rounded-full font-medium ${
                 isDark
@@ -386,13 +432,13 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
           </div>
         </div>
         <p
-          className={`text-sm mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}
+          className={`relative text-sm mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}
         >
           Rankings based on total net worth
         </p>
       </div>
 
-      {/* Table - Larger text for projector */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-[720px] w-full">
           <thead className={isDark ? "bg-[#2a0140]/60" : "bg-slate-100"}>
@@ -409,7 +455,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
             </tr>
           </thead>
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-gray-200/50 dark:divide-gray-800">
             {leaderboard.length === 0 && (
               <tr>
                 <td
@@ -427,152 +473,152 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
               </tr>
             )}
 
-            {leaderboard.slice(0, 15).map((p, i) => {
-              return (
-                <tr
-                  key={p.participantId}
-                  className={`transition-all duration-300 ${
-                    i === 0
+            {leaderboard.slice(0, 15).map((p, i) => (
+              <motion.tr
+                key={p.participantId}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03, duration: 0.3 }}
+                className={`transition-all duration-300 ${
+                  i === 0
+                    ? isDark
+                      ? "bg-gradient-to-r from-yellow-900/50 to-transparent hover:bg-yellow-900/60"
+                      : "bg-gradient-to-r from-yellow-100/90 to-white hover:bg-yellow-100"
+                    : i === 1
                       ? isDark
-                        ? "bg-gradient-to-r from-yellow-900/50 to-transparent hover:bg-yellow-900/60"
-                        : "bg-gradient-to-r from-yellow-100/90 to-white hover:bg-yellow-100"
-                      : i === 1
+                        ? "bg-gradient-to-r from-slate-700/40 to-transparent hover:bg-slate-700/50"
+                        : "bg-gradient-to-r from-slate-100/90 to-white hover:bg-slate-100"
+                      : i === 2
                         ? isDark
-                          ? "bg-gradient-to-r from-slate-700/40 to-transparent hover:bg-slate-700/50"
-                          : "bg-gradient-to-r from-slate-100/90 to-white hover:bg-slate-100"
-                        : i === 2
+                          ? "bg-gradient-to-r from-amber-900/40 to-transparent hover:bg-amber-900/50"
+                          : "bg-gradient-to-r from-amber-100/80 to-white hover:bg-amber-100"
+                        : isDark
+                          ? "hover:bg-[#2a0140]/40"
+                          : "hover:bg-gray-50"
+                }`}
+              >
+                {/* Rank */}
+                <td className="px-8 py-5">
+                  <div className="flex items-center gap-3">
+                    {i === 0 && (
+                      <div className="relative">
+                        <span className="text-3xl">👑</span>
+                        <span className="absolute -top-2 -right-3 text-sm animate-pulse">
+                          ⭐
+                        </span>
+                      </div>
+                    )}
+                    {i === 1 && <span className="text-3xl">🥈</span>}
+                    {i === 2 && <span className="text-3xl">🥉</span>}
+                    {i > 2 && (
+                      <span
+                        className={`w-10 h-10 flex items-center justify-center rounded-full text-base font-bold ${
+                          isDark
+                            ? "bg-[#2a0140] text-gray-300"
+                            : "bg-gray-200 text-gray-700"
+                        }`}
+                      >
+                        {i + 1}
+                      </span>
+                    )}
+                    {i === 0 && (
+                      <span
+                        className={`text-sm font-bold px-3 py-1 rounded-full ${
+                          isDark
+                            ? "bg-yellow-500/30 text-yellow-400"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        #1
+                      </span>
+                    )}
+                  </div>
+                </td>
+
+                {/* Participant */}
+                <td className="px-8 py-5">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold ring-2 ring-white/30 ${
+                        i === 0
                           ? isDark
-                            ? "bg-gradient-to-r from-amber-900/40 to-transparent hover:bg-amber-900/50"
-                            : "bg-gradient-to-r from-amber-100/80 to-white hover:bg-amber-100"
-                          : isDark
-                            ? "hover:bg-[#2a0140]/40"
-                            : "hover:bg-gray-50"
-                  }`}
-                >
-                  {/* Rank Column - With Crown for Top 1 */}
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      {i === 0 && (
-                        <div className="relative">
-                          <span className="text-3xl">👑</span>
-                          <span className="absolute -top-2 -right-3 text-sm animate-pulse">
-                            ⭐
-                          </span>
-                        </div>
-                      )}
-                      {i === 1 && <span className="text-3xl">🥈</span>}
-                      {i === 2 && <span className="text-3xl">🥉</span>}
-                      {i > 2 && (
-                        <span
-                          className={`w-10 h-10 flex items-center justify-center rounded-full text-base font-bold ${
-                            isDark
-                              ? "bg-[#2a0140] text-gray-300"
-                              : "bg-gray-200 text-gray-700"
-                          }`}
-                        >
-                          {i + 1}
-                        </span>
-                      )}
-                      {i === 0 && (
-                        <span
-                          className={`text-sm font-bold px-3 py-1 rounded-full ${
-                            isDark
-                              ? "bg-yellow-500/30 text-yellow-400"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          #1
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Participant Column with Avatar */}
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold ${
-                          i === 0
+                            ? "bg-yellow-500/40 text-yellow-400"
+                            : "bg-yellow-200 text-yellow-700"
+                          : i === 1
                             ? isDark
-                              ? "bg-yellow-500/40 text-yellow-400"
-                              : "bg-yellow-200 text-yellow-700"
-                            : i === 1
+                              ? "bg-slate-500/40 text-gray-300"
+                              : "bg-slate-200 text-slate-700"
+                            : i === 2
                               ? isDark
-                                ? "bg-slate-500/40 text-gray-300"
-                                : "bg-slate-200 text-slate-700"
-                              : i === 2
-                                ? isDark
-                                  ? "bg-amber-500/40 text-amber-400"
-                                  : "bg-amber-200 text-amber-700"
-                                : isDark
-                                  ? "bg-[#2a0140] text-gray-300"
-                                  : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {p.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div
-                          className={`text-base font-bold ${isDark ? "text-white" : "text-gray-800"}`}
-                        >
-                          {p.name}
-                        </div>
-                        <div
-                          className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}
-                        >
-                          {p.participantId}
-                        </div>
-                      </div>
+                                ? "bg-amber-500/40 text-amber-400"
+                                : "bg-amber-200 text-amber-700"
+                              : isDark
+                                ? "bg-[#2a0140] text-gray-300"
+                                : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {p.name.charAt(0).toUpperCase()}
                     </div>
-                  </td>
-
-                  {/* Net Worth Column with Percentage Change */}
-                  <td className="px-8 py-5 text-right">
-                    <div className="flex flex-col items-end">
+                    <div>
                       <div
-                        className={`text-2xl font-extrabold tracking-tight ${
-                          i === 0
-                            ? isDark
-                              ? "text-yellow-400"
-                              : "text-yellow-600"
-                            : i === 1
-                              ? isDark
-                                ? "text-gray-300"
-                                : "text-gray-700"
-                              : i === 2
-                                ? isDark
-                                  ? "text-amber-400"
-                                  : "text-amber-600"
-                                : isDark
-                                  ? "text-[#d8b4fe]"
-                                  : "text-purple-700"
-                        }`}
+                        className={`text-base font-bold ${isDark ? "text-white" : "text-gray-800"}`}
                       >
-                        ₹{p.totalNetWorth.toLocaleString()}
+                        {p.name}
                       </div>
-
-                      {/* Additional Info for Top 3 */}
-                      {i < 3 && (
-                        <div
-                          className={`text-sm mt-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}
-                        >
-                          {i === 0
-                            ? "🏆 Leading the pack"
-                            : i === 1
-                              ? "🥈 Strong contender"
-                              : "🥉 Rising star"}
-                        </div>
-                      )}
+                      <div
+                        className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                      >
+                        {p.participantId}
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+
+                {/* Net Worth */}
+                <td className="px-8 py-5 text-right">
+                  <div className="flex flex-col items-end">
+                    <div
+                      className={`text-2xl font-extrabold tracking-tight tabular-nums ${
+                        i === 0
+                          ? isDark
+                            ? "text-yellow-400"
+                            : "text-yellow-600"
+                          : i === 1
+                            ? isDark
+                              ? "text-gray-300"
+                              : "text-gray-700"
+                            : i === 2
+                              ? isDark
+                                ? "text-amber-400"
+                                : "text-amber-600"
+                              : isDark
+                                ? "text-[#d8b4fe]"
+                                : "text-purple-700"
+                      }`}
+                    >
+                      ₹{p.totalNetWorth.toLocaleString()}
+                    </div>
+
+                    {i < 3 && (
+                      <div
+                        className={`text-sm mt-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}
+                      >
+                        {i === 0
+                          ? "🏆 Leading the pack"
+                          : i === 1
+                            ? "🥈 Strong contender"
+                            : "🥉 Rising star"}
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </motion.tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Footer with live status - Larger text for projector */}
+      {/* Footer */}
       <div
         className={`px-8 py-4 border-t ${
           isDark
@@ -585,7 +631,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium">Live updates active</span>
           </div>
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-4 text-xs flex-wrap">
             <span>📊 {leaderboard.length} Participants</span>
             <span>🔄 Auto-refresh every 5s</span>
             <span>🎯 Real-time rankings</span>
@@ -603,16 +649,20 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
       </div>
     </div>
   );
+
   const ShareGrid = () => (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
-      {shares.map((s) => {
+      {shares.map((s, idx) => {
         const bid = (s.price * 0.98).toFixed(2);
         const ask = (s.price * 1.02).toFixed(2);
         const positive = s.change >= 0;
 
         return (
-          <div
+          <motion.div
             key={s._id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.04, duration: 0.3 }}
             className={`relative rounded-2xl border p-4 overflow-hidden shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
               positive
                 ? isDark
@@ -632,7 +682,12 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
             />
 
             <div className="relative flex justify-between items-start gap-2">
-              <div className="min-w-0">
+              <div className="min-w-0 flex items-center gap-1.5">
+                {positive ? (
+                  <TrendingUp className="h-4 w-4 text-green-600 shrink-0" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600 shrink-0" />
+                )}
                 <p
                   className={`text-sm font-semibold truncate ${isDark ? "text-white" : "text-slate-800"}`}
                 >
@@ -641,7 +696,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
               </div>
 
               <p
-                className={`text-lg font-bold leading-tight whitespace-nowrap ${
+                className={`text-lg font-bold leading-tight whitespace-nowrap tabular-nums ${
                   positive ? "text-green-600" : "text-red-600"
                 }`}
               >
@@ -665,7 +720,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                   Bid
                 </p>
                 <p
-                  className={`text-sm font-semibold truncate ${isDark ? "text-[#d8b4fe]" : "text-slate-800"}`}
+                  className={`text-sm font-semibold truncate tabular-nums ${isDark ? "text-[#d8b4fe]" : "text-slate-800"}`}
                 >
                   ₹{bid}
                 </p>
@@ -682,13 +737,13 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                   Ask
                 </p>
                 <p
-                  className={`text-sm font-semibold truncate ${isDark ? "text-[#d8b4fe]" : "text-slate-800"}`}
+                  className={`text-sm font-semibold truncate tabular-nums ${isDark ? "text-[#d8b4fe]" : "text-slate-800"}`}
                 >
                   ₹{ask}
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>
@@ -718,35 +773,40 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
   /* ────────────────────────────────────────── */
   return (
     <div
-      className={`min-h-screen w-full overflow-hidden ${
+      className={`min-h-screen w-full overflow-hidden relative ${
         isDark
           ? "bg-gradient-to-br from-[#02060E] via-[#2a0140] to-[#9303C5]"
           : "bg-[#F4F6FB]"
       } ${isFullPage ? "grid grid-cols-1" : "grid grid-cols-1 lg:grid-cols-2"}`}
     >
-      {/* ================= MOBILE CURVED HEADER ================= */}
+      {/* ================= MOBILE HEADER ================= */}
       {!isFullPage && (
         <div
-          className={`lg:hidden relative w-full pt-6 pb-8 overflow-hidden transition-all duration-500 ${
+          className={`lg:hidden relative w-full pt-6 pb-10 overflow-hidden ${
             isDark
               ? "bg-gradient-to-br from-[#02060E] via-[#2a0140] to-[#9303C5]"
               : "bg-[#261753]"
           }`}
         >
+          {/* Curved bottom */}
           <div
-            className={`absolute left-1/2 -bottom-12 w-[160%] h-28 rounded-[100%] transition-all duration-500 ${
+            className={`absolute left-1/2 -bottom-14 w-[160%] h-28 rounded-[100%] ${
               isDark
                 ? "bg-gradient-to-br from-[#2a0140] to-[#9303C5]"
                 : "bg-[#B09EE4]"
             } -translate-x-1/2`}
           />
 
+          {/* Soft glows */}
+          <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-purple-500/20 blur-3xl" />
+          <div className="absolute -top-16 -left-16 w-40 h-40 rounded-full bg-pink-500/20 blur-3xl" />
+
           <div className="relative z-10 flex items-center justify-between px-4">
             <div className="flex items-center gap-3">
               <img
                 src="/Transparent logo.png"
                 alt="Logo"
-                className="h-14 w-14 object-contain"
+                className="h-14 w-14 object-contain drop-shadow-lg"
               />
               <div className="leading-tight text-left">
                 <span
@@ -761,10 +821,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                 </span>
               </div>
             </div>
-            {/* Theme Toggle for Mobile */}
-            <div className="relative z-10 flex items-center justify-between px-4">
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </div>
         </div>
       )}
@@ -772,40 +829,72 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
       {/* ================= DESKTOP LEFT PANEL ================= */}
       {!isFullPage && (
         <div
-          className={`hidden lg:flex relative justify-center items-center overflow-hidden rounded-r-[75px] transition-all duration-500 ${
+          className={`hidden lg:flex relative justify-center items-center overflow-hidden rounded-r-[75px] ${
             isDark
               ? "bg-gradient-to-br from-[#02060E] via-[#2a0140] to-[#9303C5]"
               : "bg-[#B09EE4]"
           }`}
         >
+          {/* Dark overlay panel */}
           <div
-            className={`absolute inset-0 rounded-r-[75px] z-0 transition-all duration-700 ease-out mr-[20px] ${
+            className={`absolute inset-0 rounded-r-[75px] z-0 mr-[20px] ${
               isDark ? "bg-[#02060E]/80" : "bg-[#261753]"
             }`}
           />
 
-          {/* Theme Toggle for Desktop - Top Right Corner */}
+          {/* Ambient blobs */}
+          <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-purple-500/20 blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl" />
+
+          {/* Fine grid overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.06] pointer-events-none"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+              maskImage:
+                "radial-gradient(ellipse at 50% 50%, black 40%, transparent 80%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse at 50% 50%, black 40%, transparent 80%)",
+            }}
+          />
+
+          {/* Theme toggle */}
           <div className="absolute top-6 right-12 z-20">
             <ThemeToggle />
           </div>
 
-          {/* Illustration */}
+          {/* Illustration with glow */}
           <div className="relative z-10 px-6 sm:px-8">
+            <div className="absolute inset-0 bg-purple-500/30 blur-3xl rounded-full scale-90" />
             <img
               src="/login-vector.svg"
-              alt="Signup Illustration"
+              alt="Login Illustration"
               width={400}
               height={400}
-              className="max-w-full h-auto"
+              className="relative max-w-full h-auto drop-shadow-2xl animate-[float_6s_ease-in-out_infinite]"
             />
           </div>
 
           {/* Floating Dots */}
-          <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-white/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-4 h-4 bg-white/15 rounded-full animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/3 w-2 h-2 bg-white/25 rounded-full animate-pulse delay-500"></div>
-          <div className="absolute top-1/5 left-1/5 w-2.5 h-2.5 bg-white/20 rounded-full animate-pulse delay-200"></div>
-          <div className="absolute bottom-1/5 right-1/3 w-3.5 h-3.5 bg-white/15 rounded-full animate-pulse delay-1200"></div>
+          <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-white/25 rounded-full animate-pulse" />
+          <div
+            className="absolute bottom-1/3 left-1/4 w-4 h-4 bg-white/20 rounded-full animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
+          <div
+            className="absolute top-1/2 left-1/3 w-2 h-2 bg-white/30 rounded-full animate-pulse"
+            style={{ animationDelay: "0.5s" }}
+          />
+          <div
+            className="absolute top-1/5 left-1/5 w-2.5 h-2.5 bg-white/25 rounded-full animate-pulse"
+            style={{ animationDelay: "0.2s" }}
+          />
+          <div
+            className="absolute bottom-1/5 right-1/3 w-3.5 h-3.5 bg-white/20 rounded-full animate-pulse"
+            style={{ animationDelay: "1.2s" }}
+          />
 
           {/* Logo + Text */}
           <div className="absolute top-6 left-10 flex items-center gap-3 z-10">
@@ -814,7 +903,7 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
               alt="Logo"
               width={65}
               height={65}
-              className="object-contain"
+              className="object-contain drop-shadow-lg"
             />
             <div className="flex flex-col leading-tight">
               <span
@@ -837,47 +926,66 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
           {/* Copyright */}
           <p
             className={`absolute bottom-6 left-6 text-xs z-10 ${
-              isDark ? "text-gray-500" : "text-white/50"
+              isDark ? "text-gray-500" : "text-white/60"
             }`}
           >
-            © 2026 Finance Committee – FOSTIIMA
+            © {currentYear} Finance Committee – FOSTIIMA
           </p>
         </div>
       )}
 
       {/* ───────── RIGHT AUTH PANEL ───────── */}
       <div
-        className={`flex ${
+        className={`flex relative ${
           isFullPage
             ? "items-start justify-center py-10"
             : "items-center justify-center"
         } px-4`}
       >
+        {/* Ambient glow behind the card */}
+        {!isFullPage && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-purple-500/10 dark:bg-purple-500/15 blur-3xl" />
+          </div>
+        )}
+
         <Card
-          className={`w-full ${
+          className={`relative w-full ${
             isFullPage ? "max-w-6xl min-h-[85vh]" : "max-w-md"
-          } rounded-2xl shadow-xl border transition-all duration-300 ${
+          } rounded-3xl shadow-2xl border transition-all duration-300 overflow-hidden ${
             isDark
-              ? "bg-[#02060E]/80 backdrop-blur-sm border-[#9303C5]/30"
-              : "bg-white"
+              ? "bg-[#02060E]/80 backdrop-blur-xl border-[#9303C5]/30"
+              : "bg-white border-gray-100"
           }`}
         >
-          <CardHeader className="pb-6">
+          {/* Top accent gradient line */}
+          <div
+            className={`absolute top-0 left-12 right-12 h-px ${
+              isDark
+                ? "bg-gradient-to-r from-transparent via-[#9303C5] to-transparent"
+                : "bg-gradient-to-r from-transparent via-purple-300 to-transparent"
+            }`}
+          />
+
+          <CardHeader className="pb-6 relative">
             {/* Header Row */}
             <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
-              {view !== "auth" && (
+              {view !== "auth" ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setView("auth")}
-                  className={`rounded-full px-3 py-2 transition-all whitespace-nowrap ${
+                  className={`rounded-full px-3 py-2 transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     isDark
                       ? "border-[#9303C5] text-[#d8b4fe] hover:bg-[#2a0140]/50"
                       : "border-[#B09EE4] text-[#6B5FB5] hover:bg-[#B09EE4]/10"
                   }`}
                 >
-                  ← Back
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back
                 </Button>
+              ) : (
+                <div />
               )}
 
               <div className="flex items-center justify-center gap-2 text-center">
@@ -893,20 +1001,22 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                   FOSTIIMA Stock Exchange
                 </CardTitle>
               </div>
+
+              <div />
             </div>
 
             {/* Navigation buttons only on auth */}
             {view === "auth" && (
-              <div className="mt-4 flex flex-wrap justify-center gap-3">
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {viewButtons.map((btn) => (
                   <Button
                     key={btn.key}
                     variant="outline"
                     onClick={() => setView(btn.key)}
-                    className={`rounded-full px-5 py-2 text-sm transition flex items-center gap-2 ${
+                    className={`rounded-full px-4 py-2 text-sm transition flex items-center gap-2 hover:-translate-y-0.5 ${
                       isDark
-                        ? "border-[#9303C5] text-[#d8b4fe] hover:bg-[#2a0140]/50"
-                        : "hover:bg-indigo-50"
+                        ? "border-[#9303C5] text-[#d8b4fe] hover:bg-[#2a0140]/50 hover:border-[#9303C5]/70"
+                        : "border-[#B09EE4] text-[#6B5FB5] hover:bg-[#B09EE4]/10 hover:border-[#8F7AE6]"
                     }`}
                   >
                     {btn.icon}
@@ -925,15 +1035,15 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                 onValueChange={(v) => setAuthTab(v as "login" | "signup")}
               >
                 <TabsList
-                  className={`grid w-full grid-cols-2 mb-6 rounded-lg p-1 ${
-                    isDark ? "bg-[#2a0140]/50" : "bg-[#F1ECFF]"
+                  className={`grid w-full grid-cols-2 mb-6 rounded-xl p-1 ${
+                    isDark ? "bg-[#2a0140]/60" : "bg-[#F1ECFF]"
                   }`}
                 >
                   <TabsTrigger
                     value="login"
-                    className={`rounded-md font-medium ${
+                    className={`rounded-lg font-medium transition-all ${
                       isDark
-                        ? "data-[state=active]:bg-[#9303C5] data-[state=active]:text-white data-[state=active]:shadow-lg"
+                        ? "data-[state=active]:bg-[#9303C5] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-[#9303C5]/40"
                         : "data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-indigo-600"
                     }`}
                   >
@@ -941,9 +1051,9 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                   </TabsTrigger>
                   <TabsTrigger
                     value="signup"
-                    className={`rounded-md font-medium ${
+                    className={`rounded-lg font-medium transition-all ${
                       isDark
-                        ? "data-[state=active]:bg-[#9303C5] data-[state=active]:text-white data-[state=active]:shadow-lg"
+                        ? "data-[state=active]:bg-[#9303C5] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-[#9303C5]/40"
                         : "data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-indigo-600"
                     }`}
                   >
@@ -966,10 +1076,10 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         name="email"
                         type="email"
                         required
-                        className={`h-12 rounded-lg border ${
+                        className={`h-12 rounded-xl border mt-1.5 transition-all ${
                           isDark
-                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5]"
-                            : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5]"
+                            : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         }`}
                       />
                     </div>
@@ -985,15 +1095,15 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         name="password"
                         type="password"
                         required
-                        className={`h-12 rounded-lg border ${
+                        className={`h-12 rounded-xl border mt-1.5 transition-all ${
                           isDark
-                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5]"
-                            : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5]"
+                            : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         }`}
                       />
                     </div>
                     <Button
-                      className={`w-full h-12 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
+                      className={`w-full h-12 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 ${
                         isDark
                           ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] text-white hover:from-[#7B02A8] hover:to-[#5B0186]"
                           : "bg-gradient-to-r from-[#B09EE4] to-[#8F7AE6] text-white hover:from-[#9A86DB] hover:to-[#7C67D8]"
@@ -1022,10 +1132,10 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         id="name"
                         name="name"
                         required
-                        className={`h-12 rounded-lg border ${
+                        className={`h-12 rounded-xl border mt-1.5 transition-all ${
                           isDark
-                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5]"
-                            : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5]"
+                            : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         }`}
                       />
                     </div>
@@ -1041,10 +1151,10 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         name="email"
                         type="email"
                         required
-                        className={`h-12 rounded-lg border ${
+                        className={`h-12 rounded-xl border mt-1.5 transition-all ${
                           isDark
-                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5]"
-                            : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5]"
+                            : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         }`}
                       />
                     </div>
@@ -1060,10 +1170,10 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         name="password"
                         type="password"
                         required
-                        className={`h-12 rounded-lg border ${
+                        className={`h-12 rounded-xl border mt-1.5 transition-all ${
                           isDark
-                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5]"
-                            : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5]"
+                            : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         }`}
                       />
                     </div>
@@ -1077,10 +1187,10 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                         </Label>
                         <select
                           name="role"
-                          className={`w-full h-12 rounded-lg border ${
+                          className={`w-full h-12 rounded-xl border mt-1.5 transition-all ${
                             isDark
-                              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5]"
-                              : "border-gray-300 bg-[#F8F6FF]"
+                              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40"
+                              : "border-gray-200 bg-[#F8F6FF] focus:ring-2 focus:ring-indigo-500/30"
                           }`}
                           required
                         >
@@ -1109,31 +1219,31 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                           className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}
                           htmlFor="secretKey"
                         >
-                          Secret Key (Employee / Admin)
+                          Secret Key
                         </Label>
                         <Input
                           id="secretKey"
                           name="secretKey"
-                          placeholder="Enter secret key"
+                          placeholder="Employee / Admin"
                           autoComplete="off"
                           autoCorrect="off"
                           spellCheck={false}
                           onFocus={(e) => (e.target.value = "")}
-                          className={`h-12 rounded-lg border ${
+                          className={`h-12 rounded-xl border mt-1.5 transition-all ${
                             isDark
-                              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-[#9303C5] focus:border-[#9303C5] placeholder:text-gray-500"
-                              : "bg-[#F8F6FF] border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                              ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:ring-2 focus:ring-[#9303C5]/40 focus:border-[#9303C5] placeholder:text-gray-500"
+                              : "bg-[#F8F6FF] border-gray-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                           }`}
                         />
                         <p
                           className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}
                         >
-                          Leave blank for Participant registration
+                          Leave blank for Participant
                         </p>
                       </div>
                     </div>
                     <Button
-                      className={`w-full h-12 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
+                      className={`w-full h-12 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 ${
                         isDark
                           ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] text-white hover:from-[#7B02A8] hover:to-[#5B0186]"
                           : "bg-gradient-to-r from-[#B09EE4] to-[#8F7AE6] text-white hover:from-[#9A86DB] hover:to-[#7C67D8]"
@@ -1154,19 +1264,22 @@ const LoginForm = ({ onLogin }: { onLogin: (u: AuthUser) => void }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
-                {/* ② Market News */}
                 {view === "news" && <MarketNews />}
-
-                {/* ③ Leaderboard */}
                 {view === "leaderboard" && <LiveLeaderboard />}
-
-                {/* ④ Shares grid */}
                 {view === "shares" && <ShareGrid />}
               </motion.div>
             </AnimatePresence>
           </CardContent>
         </Card>
       </div>
+
+      {/* Global float keyframes for the illustration */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+      `}</style>
     </div>
   );
 };

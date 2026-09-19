@@ -1,5 +1,5 @@
-// AdminDashboard.tsx - Complete Fixed Version
-import React, { useEffect, useState, useRef } from "react";
+// AdminDashboard.tsx - Refined, dark-mode-safe icons
+import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,18 +74,131 @@ const container: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.15 },
   },
 };
 
 const item: Variants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 100 } as const,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   },
 };
+
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  subtitle,
+  isDark,
+  right,
+  count,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  isDark: boolean;
+  right?: React.ReactNode;
+  count?: { value: number; label: string };
+}) => (
+  <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="flex items-center gap-3.5 min-w-0">
+      <div className="relative shrink-0">
+        <div
+          className={`absolute -inset-1 rounded-2xl blur-lg ${
+            isDark ? "bg-[#9303C5]/40" : "bg-purple-300/60"
+          }`}
+        />
+        <div
+          className={`relative w-12 h-12 rounded-2xl flex items-center justify-center border overflow-hidden ${
+            isDark
+              ? "bg-gradient-to-br from-[#9303C5]/50 via-[#6b02b3]/40 to-[#2a0140]/70 border-[#d8b4fe]/30"
+              : "bg-gradient-to-br from-purple-100 via-purple-50 to-indigo-100 border-purple-200"
+          }`}
+        >
+          <span className="absolute inset-x-2 top-0 h-px bg-white/40" />
+          <span
+            className={`absolute -top-3 -right-3 w-8 h-8 rounded-full blur-md ${
+              isDark ? "bg-[#d8b4fe]/30" : "bg-purple-300/50"
+            }`}
+          />
+          <Icon
+            className={`relative h-[22px] w-[22px] ${
+              isDark ? "text-[#f0e6ff]" : "text-purple-600"
+            }`}
+            strokeWidth={2.4}
+          />
+        </div>
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h3
+            className={`text-lg sm:text-xl font-bold tracking-tight ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
+            {title}
+          </h3>
+          {count && (
+            <span
+              className={`text-[11px] px-2.5 py-1 rounded-full font-bold border tabular-nums ${
+                isDark
+                  ? "bg-[#9303C5]/25 text-[#e9d5ff] border-[#d8b4fe]/25"
+                  : "bg-purple-50 text-purple-700 border-purple-200"
+              }`}
+            >
+              {count.value} {count.label}
+            </span>
+          )}
+        </div>
+        <p
+          className={`text-xs mt-0.5 ${
+            isDark ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          {subtitle}
+        </p>
+      </div>
+    </div>
+    {right}
+  </div>
+);
+
+/**
+ * InputWithIcon — input with a leading icon placed inside a small tinted chip.
+ * The chip guarantees visibility because the icon sits on its own colored surface.
+ */
+const InputWithIcon = ({
+  icon: Icon,
+  isDark,
+  className,
+  ...inputProps
+}: {
+  icon: React.ElementType;
+  isDark: boolean;
+  className?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) => (
+  <div className="relative">
+    {/* Icon chip — a mini surface behind the icon so it's always visible */}
+    <div
+      className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-7 h-7 rounded-lg flex items-center justify-center border ${
+        isDark
+          ? "bg-gradient-to-br from-[#9303C5]/40 to-[#6b02b3]/30 border-[#d8b4fe]/30"
+          : "bg-gradient-to-br from-purple-100 to-indigo-100 border-purple-200"
+      }`}
+    >
+      <Icon
+        className={`h-3.5 w-3.5 ${
+          isDark ? "text-[#f0e6ff]" : "text-purple-600"
+        }`}
+        strokeWidth={2.6}
+      />
+    </div>
+    <Input {...inputProps} className={`pl-11 ${className ?? ""}`} />
+  </div>
+);
 
 const AdminDashboard = ({ user }: { user: AdminUser }) => {
   const { theme } = useTheme();
@@ -114,17 +227,36 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
 
   const isDark = theme === "dark";
 
-  const darkCardClass = isDark
-    ? "bg-[#02060E]/80 backdrop-blur-sm border-[#9303C5]/30 shadow-xl"
-    : "hover:shadow-lg transition-shadow duration-300";
-  const darkBorderClass = isDark ? "border-[#9303C5]/20" : "border-gray-100";
-  const darkHoverClass = isDark
-    ? "hover:bg-[#2a0140]/30"
-    : "hover:bg-gray-50 transition-colors duration-200";
-  const darkTextClass = isDark ? "text-white" : "text-gray-800";
-  const darkMutedTextClass = isDark ? "text-gray-400" : "text-gray-500";
-  const darkPriceClass = isDark ? "text-[#d8b4fe]" : "text-purple-700";
+  /* ───── Shared theme helpers ───── */
+  const cardShell = `relative rounded-2xl border transition-all duration-300 ${
+    isDark
+      ? "bg-[#02060E]/80 backdrop-blur-md border-[#9303C5]/30 shadow-[0_10px_40px_-15px_rgba(147,3,197,0.4)]"
+      : "bg-white border-gray-100 shadow-[0_8px_30px_-15px_rgba(99,86,215,0.15)]"
+  }`;
 
+  const cardHeaderStrip = `relative border-b ${
+    isDark ? "border-[#9303C5]/20" : "border-gray-100"
+  }`;
+
+  const inputClass = `transition-all duration-200 focus:ring-2 rounded-xl ${
+    isDark
+      ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5]/40 placeholder:text-gray-500"
+      : "bg-gray-50/60 border-gray-200 focus:border-purple-500 focus:ring-purple-200/50"
+  }`;
+
+  const primaryBtnClass = `text-white font-semibold transition-all duration-300 rounded-full shadow-lg hover:-translate-y-0.5 ${
+    isDark
+      ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] hover:from-[#7B02A8] hover:to-[#5B0186] shadow-[#9303C5]/40 hover:shadow-[#9303C5]/60"
+      : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/30 hover:shadow-purple-500/50"
+  }`;
+
+  const mutedText = isDark ? "text-gray-400" : "text-gray-500";
+  const strongText = isDark ? "text-white" : "text-gray-900";
+  const priceText = isDark ? "text-[#d8b4fe]" : "text-purple-700";
+
+  /* ──────────────────────────────────── */
+  /*           API actions                */
+  /* ──────────────────────────────────── */
   const fetchNews = async () => {
     const res = await axiosInstance.get("/news");
     setNews(res.data);
@@ -186,12 +318,12 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
       setShares((prev) => prev.filter((s) => s._id !== id));
     });
 
-    socket.on("news:new", (news: NewsItem) => {
+    socket.on("news:new", (newsItem: NewsItem) => {
       toast({
         title: "📰 Breaking News",
-        description: news.headline,
+        description: newsItem.headline,
       });
-      setNews((prev) => [news, ...prev]);
+      setNews((prev) => [newsItem, ...prev]);
     });
 
     socket.on("leaderboard:update", (data) => {
@@ -206,6 +338,7 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
       socket.off("market:status");
       socket.off("leaderboard:update");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openBumpDialog = (id: string, sign: "+" | "-") => {
@@ -313,312 +446,392 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
       variants={container}
       initial="hidden"
       animate="show"
-      className="max-w-6xl mx-auto space-y-8"
+      className="relative max-w-6xl mx-auto space-y-8"
     >
-      {/* Animated Background Effect for Dark Mode */}
-      {isDark && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute top-20 -left-40 w-80 h-80 bg-[#9303C5]/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 -right-40 w-80 h-80 bg-[#2a0140]/20 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#9303C5]/5 rounded-full blur-3xl" />
-        </div>
-      )}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div
+          className={`absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full blur-3xl ${
+            isDark ? "bg-[#9303C5]/15" : "bg-purple-200/25"
+          }`}
+        />
+        <div
+          className={`absolute -bottom-40 -right-40 w-[36rem] h-[36rem] rounded-full blur-3xl ${
+            isDark ? "bg-[#2a0140]/40" : "bg-indigo-200/25"
+          }`}
+        />
+      </div>
 
-      {/* Share Management Section */}
+      {/* ═══════════════════ SHARE MANAGEMENT ═══════════════════ */}
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-xl ${isDark ? "bg-[#9303C5]/20" : "bg-purple-100"}`}
-                >
-                  <DollarSign
-                    className={`h-5 w-5 ${isDark ? "text-purple-400" : "text-purple-600"}`}
-                  />
-                </div>
-                <CardTitle className={`text-xl font-bold ${darkTextClass}`}>
-                  Manage Shares
-                </CardTitle>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${isDark ? "bg-[#9303C5]/20 text-[#d8b4fe]" : "bg-purple-100 text-purple-700"}`}
-                >
-                  {shares.length} Active
-                </span>
-              </div>
+        <Card className={cardShell}>
+          <div
+            className={`absolute inset-x-10 -top-px h-px ${
+              isDark
+                ? "bg-gradient-to-r from-transparent via-[#9303C5] to-transparent"
+                : "bg-gradient-to-r from-transparent via-purple-300 to-transparent"
+            }`}
+          />
 
-              <motion.div
-                animate={marketRunning ? { scale: [1, 1.05, 1] } : {}}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <Button
-                  onClick={toggleMarket}
-                  className={`${
+          <CardHeader className={cardHeaderStrip}>
+            <SectionHeader
+              icon={DollarSign}
+              title="Manage Shares"
+              subtitle="Add, adjust, and remove listed shares"
+              isDark={isDark}
+              count={{ value: shares.length, label: "active" }}
+              right={
+                <motion.div
+                  animate={
                     marketRunning
-                      ? isDark
-                        ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-lg hover:shadow-green-500/50"
-                        : "bg-green-600 hover:bg-green-700"
-                      : isDark
-                        ? "bg-gradient-to-r from-red-600 to-rose-600 hover:shadow-lg hover:shadow-red-500/50"
-                        : "bg-red-600 hover:bg-red-700"
-                  } text-white shadow-lg transition-all duration-300 rounded-full px-5`}
+                      ? {
+                          boxShadow: [
+                            "0 0 0 0 rgba(34,197,94,0.4)",
+                            "0 0 0 8px rgba(34,197,94,0)",
+                          ],
+                        }
+                      : {}
+                  }
+                  transition={{ repeat: Infinity, duration: 1.8 }}
+                  className="rounded-full"
                 >
-                  <span
-                    className={`inline-block w-2 h-2 rounded-full mr-2 ${marketRunning ? "bg-green-300 animate-pulse" : "bg-red-300"}`}
-                  />
-                  {marketRunning ? "Market ON" : "Market OFF"}
-                </Button>
-              </motion.div>
-            </div>
+                  <Button
+                    onClick={toggleMarket}
+                    className={`rounded-full px-5 shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${
+                      marketRunning
+                        ? isDark
+                          ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-green-500/50"
+                          : "bg-green-600 text-white hover:bg-green-700 hover:shadow-green-500/40"
+                        : isDark
+                          ? "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:shadow-red-500/50"
+                          : "bg-red-600 text-white hover:bg-red-700 hover:shadow-red-500/40"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                        marketRunning
+                          ? "bg-green-300 animate-pulse"
+                          : "bg-red-300"
+                      }`}
+                    />
+                    {marketRunning ? "Market ON" : "Market OFF"}
+                  </Button>
+                </motion.div>
+              }
+            />
           </CardHeader>
 
           <CardContent className="space-y-6 p-6">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Activity
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${darkMutedTextClass}`}
-                />
-                <Input
-                  placeholder="Share Name"
+            {/* Add share row — icon chips now guarantee visibility */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <InputWithIcon
+                  icon={Activity}
+                  isDark={isDark}
+                  placeholder="Share name (e.g., TCS)"
                   value={newShare.name}
                   onChange={(e) =>
                     setNewShare({
                       ...newShare,
-                      name: e.target.value.toUpperCase(),
+                      name: (e.target as HTMLInputElement).value.toUpperCase(),
                     })
                   }
-                  className={`pl-9 transition-all duration-200 focus:ring-2 ${
-                    isDark
-                      ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5] placeholder:text-gray-500"
-                      : "focus:ring-purple-200 focus:border-purple-500"
-                  }`}
+                  className={`h-12 ${inputClass}`}
                 />
               </div>
-              <div className="relative w-40">
-                <IndianRupee
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${darkMutedTextClass}`}
-                />
-                <Input
+              <div className="sm:w-52">
+                <InputWithIcon
+                  icon={IndianRupee}
+                  isDark={isDark}
                   type="number"
                   placeholder="Price"
-                  value={newShare.price}
+                  value={newShare.price || ""}
                   onChange={(e) =>
-                    setNewShare({ ...newShare, price: +e.target.value })
+                    setNewShare({
+                      ...newShare,
+                      price: +(e.target as HTMLInputElement).value,
+                    })
                   }
-                  className={`pl-9 transition-all duration-200 focus:ring-2 ${
-                    isDark
-                      ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5] placeholder:text-gray-500"
-                      : "focus:ring-purple-200 focus:border-purple-500"
-                  }`}
+                  className={`h-12 ${inputClass}`}
                 />
               </div>
               <Button
                 onClick={handleAddShare}
-                className={`${
-                  isDark
-                    ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] hover:shadow-lg hover:shadow-[#9303C5]/50"
-                    : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-lg hover:shadow-purple-500/30"
-                } text-white font-semibold px-6 transition-all duration-300 rounded-full`}
+                disabled={!newShare.name || newShare.price <= 0}
+                className={`${primaryBtnClass} h-12 px-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
               >
-                <Plus className="h-4 w-4 mr-1" /> Add Share
+                <Plus className="h-4 w-4 mr-1.5" strokeWidth={2.6} />
+                Add Share
               </Button>
             </div>
 
+            {/* Shares list */}
             <div className="grid gap-3">
-              {shares.map((sh, idx) => {
-                const locked =
-                  sh.lockedUntil && new Date(sh.lockedUntil) > new Date();
-                return (
+              <AnimatePresence mode="popLayout">
+                {shares.length === 0 ? (
                   <motion.div
-                    key={sh._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.01 }}
-                    className={`rounded-xl border p-4 flex items-center justify-between transition-all duration-300 ${
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`text-center py-14 rounded-2xl border border-dashed ${
                       isDark
-                        ? `${darkBorderClass} ${darkHoverClass} bg-[#02060E]/40`
-                        : "bg-white hover:shadow-md border-gray-200"
+                        ? "border-[#9303C5]/30 text-gray-400 bg-[#2a0140]/10"
+                        : "border-purple-200 text-gray-500 bg-purple-50/30"
                     }`}
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          isDark ? "bg-[#9303C5]/20" : "bg-purple-100"
+                    <div
+                      className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 border ${
+                        isDark
+                          ? "bg-[#9303C5]/20 border-[#d8b4fe]/25"
+                          : "bg-white border-purple-200"
+                      }`}
+                    >
+                      <Activity
+                        className={`h-6 w-6 ${
+                          isDark ? "text-[#f0e6ff]" : "text-purple-500"
                         }`}
-                      >
-                        <Activity
-                          className={`h-4 w-4 ${isDark ? "text-purple-400" : "text-purple-600"}`}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <strong className={`text-lg ${darkTextClass}`}>
-                            {sh.name}
-                          </strong>
-                          {locked && (
-                            <Badge
-                              className={`${isDark ? "bg-[#9303C5]/20 text-[#d8b4fe]" : "bg-amber-100 text-amber-700"} rounded-full`}
-                            >
-                              🔒 locked
-                            </Badge>
-                          )}
-                        </div>
-                        <p className={`text-xs ${darkMutedTextClass}`}>
-                          Current Price
-                        </p>
-                      </div>
+                        strokeWidth={2.4}
+                      />
                     </div>
-
-                    <div className="text-right mr-4">
-                      <p className={`text-2xl font-bold ${darkPriceClass}`}>
-                        ₹{sh.price.toFixed(2)}
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={locked}
-                        onClick={() => openBumpDialog(sh._id, "+")}
-                        className={`rounded-full w-9 h-9 p-0 ${
-                          isDark
-                            ? "border-[#9303C5]/30 text-[#d8b4fe] hover:bg-[#9303C5]/20"
-                            : "hover:bg-green-50 hover:border-green-300"
-                        }`}
-                      >
-                        <TrendingUp className="h-4 w-4" />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={locked}
-                        onClick={() => openBumpDialog(sh._id, "-")}
-                        className={`rounded-full w-9 h-9 p-0 ${
-                          isDark
-                            ? "border-[#9303C5]/30 text-[#d8b4fe] hover:bg-[#9303C5]/20"
-                            : "hover:bg-red-50 hover:border-red-300"
-                        }`}
-                      >
-                        <TrendingDown className="h-4 w-4" />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteShare(sh._id)}
-                        className="rounded-full w-9 h-9 p-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <p className={`text-sm font-medium ${strongText}`}>
+                      No shares listed yet
+                    </p>
+                    <p className={`text-xs ${mutedText} mt-1`}>
+                      Add your first share above
+                    </p>
                   </motion.div>
-                );
-              })}
+                ) : (
+                  shares.map((sh, idx) => {
+                    const locked =
+                      sh.lockedUntil && new Date(sh.lockedUntil) > new Date();
+                    return (
+                      <motion.div
+                        key={sh._id}
+                        layout
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ delay: idx * 0.04 }}
+                        whileHover={{ y: -2 }}
+                        className={`group relative rounded-xl border p-4 flex items-center justify-between transition-all duration-300 overflow-hidden ${
+                          isDark
+                            ? "bg-[#02060E]/40 border-[#9303C5]/20 hover:border-[#9303C5]/50 hover:bg-[#2a0140]/30"
+                            : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-md"
+                        }`}
+                      >
+                        <div
+                          className={`absolute left-0 top-0 bottom-0 w-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+                            isDark
+                              ? "bg-gradient-to-b from-[#9303C5] to-[#d8b4fe]"
+                              : "bg-gradient-to-b from-purple-500 to-indigo-500"
+                          }`}
+                        />
+
+                        <div className="flex items-center gap-4 flex-1 min-w-0 pl-1">
+                          <div
+                            className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border ${
+                              isDark
+                                ? "bg-gradient-to-br from-[#9303C5]/35 to-[#2a0140]/60 border-[#d8b4fe]/25"
+                                : "bg-gradient-to-br from-purple-100 to-indigo-100 border-purple-200"
+                            }`}
+                          >
+                            <Activity
+                              className={`h-5 w-5 ${
+                                isDark ? "text-[#f0e6ff]" : "text-purple-600"
+                              }`}
+                              strokeWidth={2.4}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <strong
+                                className={`text-base sm:text-lg font-bold ${strongText}`}
+                              >
+                                {sh.name}
+                              </strong>
+                              {locked && (
+                                <Badge
+                                  className={`rounded-full text-[10px] font-semibold ${
+                                    isDark
+                                      ? "bg-[#9303C5]/30 text-[#e9d5ff] border border-[#d8b4fe]/40"
+                                      : "bg-amber-100 text-amber-700 border border-amber-200"
+                                  }`}
+                                >
+                                  🔒 Locked
+                                </Badge>
+                              )}
+                            </div>
+                            <p className={`text-xs ${mutedText} mt-0.5`}>
+                              Current price
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right mr-4 shrink-0">
+                          <p
+                            className={`text-xl sm:text-2xl font-bold tabular-nums ${priceText}`}
+                          >
+                            ₹{sh.price.toFixed(2)}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            disabled={locked}
+                            onClick={() => openBumpDialog(sh._id, "+")}
+                            title="Increase price"
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 ${
+                              isDark
+                                ? "bg-green-500/15 text-green-300 hover:bg-green-500/25 border border-green-500/40"
+                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-200"
+                            }`}
+                          >
+                            <TrendingUp className="h-4 w-4" strokeWidth={2.4} />
+                          </button>
+
+                          <button
+                            disabled={locked}
+                            onClick={() => openBumpDialog(sh._id, "-")}
+                            title="Decrease price"
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 ${
+                              isDark
+                                ? "bg-red-500/15 text-red-300 hover:bg-red-500/25 border border-red-500/40"
+                                : "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                            }`}
+                          >
+                            <TrendingDown
+                              className="h-4 w-4"
+                              strokeWidth={2.4}
+                            />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteShare(sh._id)}
+                            title="Delete share"
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 ${
+                              isDark
+                                ? "bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50"
+                                : "bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+                            }`}
+                          >
+                            <Trash2 className="h-4 w-4" strokeWidth={2.4} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </AnimatePresence>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* News Management Section */}
+      {/* ═══════════════════ NEWS MANAGEMENT ═══════════════════ */}
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
-          <CardHeader className="border-b">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-xl ${isDark ? "bg-[#9303C5]/20" : "bg-purple-100"}`}
-              >
-                <Newspaper
-                  className={`h-5 w-5 ${isDark ? "text-purple-400" : "text-purple-600"}`}
-                />
-              </div>
-              <CardTitle className={`text-xl font-bold ${darkTextClass}`}>
-                Manage News
-              </CardTitle>
-            </div>
+        <Card className={cardShell}>
+          <div
+            className={`absolute inset-x-10 -top-px h-px ${
+              isDark
+                ? "bg-gradient-to-r from-transparent via-[#9303C5] to-transparent"
+                : "bg-gradient-to-r from-transparent via-purple-300 to-transparent"
+            }`}
+          />
+          <CardHeader className={cardHeaderStrip}>
+            <SectionHeader
+              icon={Newspaper}
+              title="Manage News"
+              subtitle="Post headlines that affect share prices"
+              isDark={isDark}
+            />
           </CardHeader>
+
           <CardContent className="space-y-5 p-6">
             <Textarea
-              className={`min-h-[100px] transition-all duration-200 focus:ring-2 ${
-                isDark
-                  ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5] placeholder:text-gray-500"
-                  : "focus:ring-purple-200 focus:border-purple-500"
-              } rounded-xl`}
-              placeholder="Enter news headline..."
+              className={`min-h-[110px] ${inputClass} resize-none`}
+              placeholder="Enter news headline…"
               value={newNews.headline}
               onChange={(e) =>
                 setNewNews({ ...newNews, headline: e.target.value })
               }
             />
 
-            {/* Selected Shares Tags */}
             <div className="flex flex-wrap gap-2 items-center">
-              <span className={`text-sm font-medium ${darkMutedTextClass}`}>
-                Selected Shares:
+              <span
+                className={`text-xs font-semibold uppercase tracking-wider ${mutedText}`}
+              >
+                Affected shares
               </span>
               {newNews.affectedShares.length > 0 ? (
-                newNews.affectedShares.map((share) => (
-                  <Badge
-                    key={share}
-                    className={`flex items-center gap-1 cursor-pointer px-3 py-1.5 rounded-full ${
-                      isDark
-                        ? "bg-[#9303C5]/40 text-[#d8b4fe] hover:bg-[#9303C5]/60 border border-[#9303C5]/50"
-                        : "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                    }`}
-                    onClick={() => removeAffectedShare(share)}
-                  >
-                    {share}
-                    <X className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))
+                <AnimatePresence mode="popLayout">
+                  {newNews.affectedShares.map((share) => (
+                    <motion.button
+                      key={share}
+                      layout
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={() => removeAffectedShare(share)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        isDark
+                          ? "bg-[#9303C5]/40 text-[#f0e6ff] border border-[#d8b4fe]/40 hover:bg-[#9303C5]/60"
+                          : "bg-purple-100 text-purple-700 border border-purple-200 hover:bg-purple-200"
+                      }`}
+                    >
+                      {share}
+                      <X className="h-3 w-3" />
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
               ) : (
-                <span className={`text-sm italic ${darkMutedTextClass}`}>
-                  No shares selected
+                <span className={`text-xs italic ${mutedText}`}>
+                  No shares selected yet
                 </span>
               )}
             </div>
 
             <div className="flex flex-wrap gap-3 items-end">
-              {/* Share Selection Button - Opens Modal */}
               <Button
                 type="button"
                 onClick={() => {
                   setShareModalOpen(true);
                   setShareSearchTerm("");
                 }}
-                className={`w-[280px] justify-between rounded-xl ${
+                className={`w-full sm:w-[280px] h-11 justify-start rounded-xl border relative pl-11 ${
                   isDark
-                    ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white hover:bg-[#2a0140]/50"
-                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                } border`}
+                    ? "bg-[#02060E]/60 border-[#9303C5]/30 text-white hover:bg-[#2a0140]/60"
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-purple-300"
+                }`}
               >
-                <div className="flex items-center gap-2">
-                  <Search className="h-4 w-4" />
-                  <span className="truncate">
-                    {newNews.affectedShares.length
-                      ? `📌 ${newNews.affectedShares.length} share(s) selected`
-                      : "Select Affected Shares"}
-                  </span>
+                {/* Icon chip inside the button — same treatment as InputWithIcon */}
+                <div
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center border ${
+                    isDark
+                      ? "bg-gradient-to-br from-[#9303C5]/40 to-[#6b02b3]/30 border-[#d8b4fe]/30"
+                      : "bg-gradient-to-br from-purple-100 to-indigo-100 border-purple-200"
+                  }`}
+                >
+                  <Search
+                    className={`h-3.5 w-3.5 ${
+                      isDark ? "text-[#f0e6ff]" : "text-purple-600"
+                    }`}
+                    strokeWidth={2.6}
+                  />
                 </div>
+                <span className="truncate">
+                  {newNews.affectedShares.length
+                    ? `${newNews.affectedShares.length} share(s) selected`
+                    : "Select affected shares"}
+                </span>
               </Button>
 
               <div className="flex items-center gap-2">
-                <span className={`text-sm ${darkMutedTextClass}`}>Impact:</span>
+                <span className={`text-xs font-medium ${mutedText}`}>
+                  Impact
+                </span>
                 <Input
                   type="number"
                   min={1}
                   max={5}
-                  className={`w-20 text-center transition-all duration-200 focus:ring-2 rounded-xl ${
-                    isDark
-                      ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5]"
-                      : "focus:ring-purple-200 focus:border-purple-500"
-                  }`}
+                  className={`w-16 text-center h-11 ${inputClass}`}
                   value={newNews.impact}
                   onChange={(e) =>
                     setNewNews({ ...newNews, impact: +e.target.value })
@@ -628,7 +841,7 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                   {[1, 2, 3, 4, 5].map((level) => (
                     <div
                       key={level}
-                      className={`w-6 h-1.5 rounded-full transition-all ${
+                      className={`w-5 h-1.5 rounded-full transition-all ${
                         level <= newNews.impact
                           ? newNews.sentiment === "positive"
                             ? "bg-green-500"
@@ -643,10 +856,10 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
               </div>
 
               <select
-                className={`rounded-xl border px-4 py-2 text-sm transition-all duration-200 focus:ring-2 ${
+                className={`rounded-xl border px-4 h-11 text-sm transition-all focus:ring-2 ${
                   isDark
-                    ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5]"
-                    : "bg-white border-gray-200 text-gray-700 focus:ring-purple-200 focus:border-purple-500"
+                    ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5]/40"
+                    : "bg-white border-gray-200 text-gray-700 focus:ring-purple-200/50 focus:border-purple-500"
                 }`}
                 value={newNews.sentiment}
                 onChange={(e) =>
@@ -675,51 +888,65 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                 disabled={
                   !newNews.headline || newNews.affectedShares.length === 0
                 }
-                className="bg-gradient-to-r from-[#9303C5] via-[#7B02A8] to-[#5B0186] hover:from-[#7B02A8] hover:via-[#5B0186] hover:to-[#3B0064] text-white font-semibold px-6 py-2.5 transition-all duration-300 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`${primaryBtnClass} h-11 px-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
               >
-                <span className="flex items-center gap-2">
-                  <Newspaper className="h-4 w-4" />
-                  Post News
-                </span>
+                <Newspaper className="h-4 w-4 mr-1.5" strokeWidth={2.4} />
+                Post News
               </Button>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Share Selection Modal */}
+      {/* ═══════════════════ SHARE SELECTION MODAL ═══════════════════ */}
       <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
         <DialogContent
-          className={`sm:max-w-lg ${isDark ? "bg-[#02060E] border-[#9303C5]/30" : "bg-white"}`}
+          className={`sm:max-w-lg rounded-2xl ${
+            isDark
+              ? "bg-[#02060E] border-[#9303C5]/30"
+              : "bg-white border-gray-100"
+          }`}
         >
           <DialogHeader>
-            <DialogTitle className={`${darkTextClass}`}>
-              Select Affected Shares
+            <DialogTitle className={strongText}>
+              Select affected shares
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Search Input */}
+            {/* Search input with icon chip */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <div
+                className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none w-7 h-7 rounded-lg flex items-center justify-center border ${
+                  isDark
+                    ? "bg-gradient-to-br from-[#9303C5]/40 to-[#6b02b3]/30 border-[#d8b4fe]/30"
+                    : "bg-gradient-to-br from-purple-100 to-indigo-100 border-purple-200"
+                }`}
+              >
+                <Search
+                  className={`h-3.5 w-3.5 ${
+                    isDark ? "text-[#f0e6ff]" : "text-purple-600"
+                  }`}
+                  strokeWidth={2.6}
+                />
+              </div>
               <input
                 type="text"
-                placeholder="Search shares..."
+                placeholder="Search shares…"
                 value={shareSearchTerm}
                 onChange={(e) => setShareSearchTerm(e.target.value)}
-                className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border transition-all focus:ring-2 ${
+                className={`w-full pl-11 pr-3 py-2.5 text-sm rounded-xl border transition-all focus:ring-2 ${
                   isDark
-                    ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white placeholder:text-gray-400 focus:border-[#9303C5] focus:ring-[#9303C5]"
-                    : "bg-gray-50 border-gray-200 text-gray-800 focus:ring-purple-200 focus:border-purple-500"
+                    ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white placeholder:text-gray-400 focus:border-[#9303C5] focus:ring-[#9303C5]/40"
+                    : "bg-gray-50 border-gray-200 text-gray-800 placeholder:text-gray-400 focus:ring-purple-200/50 focus:border-purple-500"
                 }`}
                 autoFocus
               />
             </div>
 
-            {/* Share List */}
-            <div className="max-h-96 overflow-y-auto space-y-2">
+            <div className="max-h-96 overflow-y-auto space-y-1.5 pr-1">
               {filteredShares.length === 0 ? (
-                <div className={`text-center py-8 ${darkMutedTextClass}`}>
+                <div className={`text-center py-10 ${mutedText}`}>
                   <Activity className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No shares found</p>
                 </div>
@@ -729,10 +956,14 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                   return (
                     <label
                       key={sh._id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                        isDark
-                          ? `hover:bg-[#2a0140]/50 ${isSelected ? "bg-[#2a0140]/40" : ""}`
-                          : `hover:bg-gray-50 ${isSelected ? "bg-purple-50" : ""}`
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 border ${
+                        isSelected
+                          ? isDark
+                            ? "bg-[#2a0140]/40 border-[#9303C5]/50"
+                            : "bg-purple-50 border-purple-200"
+                          : isDark
+                            ? "hover:bg-[#2a0140]/30 border-transparent hover:border-[#9303C5]/30"
+                            : "hover:bg-gray-50 border-transparent hover:border-gray-200"
                       }`}
                     >
                       <input
@@ -744,25 +975,34 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
                       />
                       <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          isDark ? "bg-[#9303C5]/20" : "bg-purple-100"
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center border ${
+                          isDark
+                            ? "bg-[#9303C5]/30 border-[#d8b4fe]/25"
+                            : "bg-purple-100 border-purple-200"
                         }`}
                       >
                         <Activity
-                          className={`h-4 w-4 ${isDark ? "text-purple-400" : "text-purple-600"}`}
+                          className={`h-4 w-4 ${
+                            isDark ? "text-[#f0e6ff]" : "text-purple-600"
+                          }`}
+                          strokeWidth={2.4}
                         />
                       </div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${darkTextClass}`}>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-sm font-semibold truncate ${strongText}`}
+                        >
                           {sh.name}
                         </p>
-                        <p className={`text-xs ${darkMutedTextClass}`}>
+                        <p className={`text-xs ${mutedText} tabular-nums`}>
                           ₹{sh.price.toFixed(2)}
                         </p>
                       </div>
                       {isSelected && (
                         <div
-                          className={`text-xs ${isDark ? "text-green-400" : "text-purple-600"}`}
+                          className={`text-[10px] font-bold uppercase tracking-wider ${
+                            isDark ? "text-green-400" : "text-purple-600"
+                          }`}
                         >
                           ✓ Selected
                         </div>
@@ -774,8 +1014,8 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
             </div>
           </div>
 
-          <DialogFooter className="flex justify-between items-center mt-4">
-            <div className={`text-sm ${darkMutedTextClass}`}>
+          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-2">
+            <div className={`text-xs ${mutedText}`}>
               {newNews.affectedShares.length} share(s) selected
             </div>
             <div className="flex gap-2">
@@ -786,15 +1026,11 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                 }}
                 className="rounded-full"
               >
-                Clear All
+                Clear all
               </Button>
               <Button
                 onClick={() => setShareModalOpen(false)}
-                className={`rounded-full ${
-                  isDark
-                    ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] hover:shadow-lg hover:shadow-[#9303C5]/50"
-                    : "bg-gradient-to-r from-purple-600 to-indigo-600"
-                }`}
+                className={`rounded-full ${primaryBtnClass}`}
               >
                 Done
               </Button>
@@ -803,66 +1039,87 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
         </DialogContent>
       </Dialog>
 
-      {/* News List Section */}
+      {/* ═══════════════════ NEWS LIST ═══════════════════ */}
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
-          <CardHeader className="border-b">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-xl ${isDark ? "bg-[#9303C5]/20" : "bg-purple-100"}`}
-              >
-                <Newspaper
-                  className={`h-5 w-5 ${isDark ? "text-purple-400" : "text-purple-600"}`}
-                />
-              </div>
-              <CardTitle className={`text-xl font-bold ${darkTextClass}`}>
-                Market News
-              </CardTitle>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full ${isDark ? "bg-[#9303C5]/20 text-[#d8b4fe]" : "bg-purple-100 text-purple-700"}`}
-              >
-                {news.length} Articles
-              </span>
-            </div>
+        <Card className={cardShell}>
+          <div
+            className={`absolute inset-x-10 -top-px h-px ${
+              isDark
+                ? "bg-gradient-to-r from-transparent via-[#9303C5] to-transparent"
+                : "bg-gradient-to-r from-transparent via-purple-300 to-transparent"
+            }`}
+          />
+          <CardHeader className={cardHeaderStrip}>
+            <SectionHeader
+              icon={Newspaper}
+              title="Market News"
+              subtitle="Latest headlines affecting share prices"
+              isDark={isDark}
+              count={{ value: news.length, label: "articles" }}
+            />
           </CardHeader>
+
           <CardContent className="p-6">
             <div className="space-y-3">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {news.length === 0 ? (
-                  <div className={`text-center py-12 ${darkMutedTextClass}`}>
-                    <Newspaper className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p>No news articles yet</p>
-                    <p className="text-sm">
-                      Create your first market news above
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`text-center py-14 rounded-2xl border border-dashed ${
+                      isDark
+                        ? "border-[#9303C5]/30 text-gray-400 bg-[#2a0140]/10"
+                        : "border-purple-200 text-gray-500 bg-purple-50/30"
+                    }`}
+                  >
+                    <div
+                      className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 border ${
+                        isDark
+                          ? "bg-[#9303C5]/20 border-[#d8b4fe]/25"
+                          : "bg-white border-purple-200"
+                      }`}
+                    >
+                      <Newspaper
+                        className={`h-6 w-6 ${
+                          isDark ? "text-[#f0e6ff]" : "text-purple-500"
+                        }`}
+                        strokeWidth={2.4}
+                      />
+                    </div>
+                    <p className={`text-sm font-medium ${strongText}`}>
+                      No news articles yet
                     </p>
-                  </div>
+                    <p className={`text-xs ${mutedText} mt-1`}>
+                      Publish your first headline above
+                    </p>
+                  </motion.div>
                 ) : (
                   news.map((n, idx) => (
                     <motion.div
                       key={n._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      layout
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className={`relative rounded-xl border p-5 transition-all duration-300 ${
+                      transition={{ delay: idx * 0.04 }}
+                      className={`relative rounded-xl border p-5 overflow-hidden transition-all duration-300 ${
                         isDark
-                          ? `${darkBorderClass} ${darkHoverClass}`
-                          : "bg-white border-gray-200 hover:shadow-md"
+                          ? "bg-[#02060E]/40 border-[#9303C5]/20 hover:border-[#9303C5]/50 hover:bg-[#2a0140]/20"
+                          : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-md"
                       }`}
                     >
                       <div
-                        className={`absolute left-0 top-0 h-full w-1 rounded-l-xl ${
+                        className={`absolute left-0 top-0 h-full w-1 ${
                           n.sentiment === "positive"
                             ? "bg-gradient-to-b from-green-500 to-emerald-600"
                             : "bg-gradient-to-b from-red-500 to-rose-600"
                         }`}
                       />
-                      <div className="flex justify-between items-start ml-4">
-                        <div className="flex-1">
+
+                      <div className="flex justify-between items-start gap-4 ml-3">
+                        <div className="flex-1 min-w-0">
                           <h4
-                            className={`font-semibold text-base mb-2 ${darkTextClass}`}
+                            className={`font-semibold text-base mb-2 leading-snug ${strongText}`}
                           >
                             {n.headline}
                           </h4>
@@ -871,55 +1128,66 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                               {n.affectedShares.slice(0, 4).map((share, i) => (
                                 <Badge
                                   key={i}
-                                  className={`text-xs rounded-full ${isDark ? "bg-[#2a0140]/50 text-gray-300" : "bg-gray-100 text-gray-600"}`}
+                                  className={`text-[10px] rounded-full font-medium ${
+                                    isDark
+                                      ? "bg-[#2a0140]/60 text-[#e9d5ff] border border-[#d8b4fe]/20"
+                                      : "bg-gray-100 text-gray-600 border border-gray-200"
+                                  }`}
                                 >
                                   {share}
                                 </Badge>
                               ))}
                               {n.affectedShares.length > 4 && (
                                 <Badge
-                                  className={`text-xs rounded-full ${isDark ? "bg-[#2a0140]/50 text-gray-300" : "bg-gray-100 text-gray-600"}`}
+                                  className={`text-[10px] rounded-full font-medium ${
+                                    isDark
+                                      ? "bg-[#2a0140]/60 text-[#e9d5ff] border border-[#d8b4fe]/20"
+                                      : "bg-gray-100 text-gray-600 border border-gray-200"
+                                  }`}
                                 >
-                                  +{n.affectedShares.length - 4} more
+                                  +{n.affectedShares.length - 4}
                                 </Badge>
                               )}
                             </div>
                             <Badge
-                              className={`rounded-full ${
+                              className={`rounded-full text-[10px] font-bold uppercase tracking-wider ${
                                 n.sentiment === "positive"
                                   ? isDark
-                                    ? "bg-green-500/20 text-green-400"
-                                    : "bg-green-100 text-green-700"
+                                    ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                                    : "bg-green-100 text-green-700 border border-green-200"
                                   : isDark
-                                    ? "bg-red-500/20 text-red-400"
-                                    : "bg-red-100 text-red-700"
+                                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                                    : "bg-red-100 text-red-700 border border-red-200"
                               }`}
                             >
                               {n.sentiment === "positive"
                                 ? "📈 Positive"
                                 : "📉 Negative"}{" "}
-                              • Impact: {n.impact}/5
+                              · Impact {n.impact}/5
                             </Badge>
                           </div>
                           <p
-                            className={`text-xs mt-3 flex items-center gap-1 ${darkMutedTextClass}`}
+                            className={`text-[11px] mt-3 flex items-center gap-1 ${mutedText}`}
                           >
                             🕒 {new Date(n.timestamp).toLocaleString()}
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="destructive"
+
+                        <button
                           onClick={() =>
                             axiosInstance
                               .delete(`/news/${n._id}`)
                               .then(fetchNews)
                           }
-                          className="rounded-full px-4 hover:scale-105 transition-transform"
+                          title="Delete news"
+                          className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 ${
+                            isDark
+                              ? "bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50"
+                              : "bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+                          }`}
                         >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Delete
-                        </Button>
+                          <Trash2 className="h-4 w-4" strokeWidth={2.4} />
+                        </button>
                       </div>
                     </motion.div>
                   ))
@@ -930,48 +1198,75 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
         </Card>
       </motion.div>
 
-      {/* Leaderboard Section */}
+      {/* ═══════════════════ LEADERBOARD ═══════════════════ */}
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
-          <CardHeader className="border-b">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-xl ${isDark ? "bg-[#9303C5]/20" : "bg-purple-100"}`}
-              >
-                <Award
-                  className={`h-5 w-5 ${isDark ? "text-purple-400" : "text-purple-600"}`}
-                />
-              </div>
-              <CardTitle className={`text-xl font-bold ${darkTextClass}`}>
-                🏆 Live Leaderboard (Top 15)
-              </CardTitle>
-            </div>
+        <Card className={cardShell}>
+          <div
+            className={`absolute inset-x-10 -top-px h-px ${
+              isDark
+                ? "bg-gradient-to-r from-transparent via-[#9303C5] to-transparent"
+                : "bg-gradient-to-r from-transparent via-purple-300 to-transparent"
+            }`}
+          />
+          <CardHeader className={cardHeaderStrip}>
+            <SectionHeader
+              icon={Award}
+              title="Live Leaderboard"
+              subtitle="Top 15 participants by net worth"
+              isDark={isDark}
+            />
           </CardHeader>
+
           <CardContent className="p-0">
             {leaderboard.length === 0 ? (
-              <div className={`p-8 text-center ${darkMutedTextClass}`}>
-                <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>No data available</p>
+              <div className={`p-14 text-center ${mutedText}`}>
+                <div
+                  className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 border ${
+                    isDark
+                      ? "bg-[#9303C5]/20 border-[#d8b4fe]/25"
+                      : "bg-white border-purple-200"
+                  }`}
+                >
+                  <Users
+                    className={`h-6 w-6 ${
+                      isDark ? "text-[#f0e6ff]" : "text-purple-500"
+                    }`}
+                    strokeWidth={2.4}
+                  />
+                </div>
+                <p className={`text-sm font-medium ${strongText}`}>
+                  No leaderboard data yet
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr
-                      className={`border-b ${isDark ? "border-[#9303C5]/30 bg-[#2a0140]/30" : "bg-gray-50"}`}
+                      className={`border-b ${
+                        isDark
+                          ? "border-[#9303C5]/20 bg-[#2a0140]/30"
+                          : "bg-gray-50"
+                      }`}
                     >
-                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                      <th
+                        className={`px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider ${mutedText}`}
+                      >
                         Rank
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                      <th
+                        className={`px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider ${mutedText}`}
+                      >
                         Participant
                       </th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold">
+                      <th
+                        className={`px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider ${mutedText}`}
+                      >
                         Net Worth
                       </th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold">
+                      <th
+                        className={`px-6 py-4 text-center text-[11px] font-bold uppercase tracking-wider ${mutedText}`}
+                      >
                         Action
                       </th>
                     </tr>
@@ -980,26 +1275,28 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                     {leaderboard.map((p, i) => (
                       <motion.tr
                         key={p.participantId}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.03 }}
-                        className={`border-b transition-all duration-300 ${
+                        className={`border-b transition-all duration-200 ${
                           isDark
-                            ? "border-[#9303C5]/20 hover:bg-[#2a0140]/30"
-                            : "hover:bg-gray-50"
+                            ? "border-[#9303C5]/10 hover:bg-[#2a0140]/30"
+                            : "border-gray-100 hover:bg-gray-50"
                         }`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {i === 0 && <span className="text-2xl">👑</span>}
+                            {i === 0 && (
+                              <span className="text-2xl drop-shadow">👑</span>
+                            )}
                             {i === 1 && <span className="text-2xl">🥈</span>}
                             {i === 2 && <span className="text-2xl">🥉</span>}
                             {i > 2 && (
                               <span
-                                className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
+                                className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold ${
                                   isDark
-                                    ? "bg-[#2a0140] text-gray-300"
-                                    : "bg-gray-200 text-gray-600"
+                                    ? "bg-[#2a0140] text-gray-300 border border-[#9303C5]/20"
+                                    : "bg-gray-100 text-gray-600"
                                 }`}
                               >
                                 {i + 1}
@@ -1008,30 +1305,37 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className={`font-semibold ${darkTextClass}`}>
+                          <div
+                            className={`font-semibold text-sm ${strongText}`}
+                          >
                             {p.name}
                           </div>
-                          <div className={`text-xs ${darkMutedTextClass}`}>
-                            ID: {p.participantId}
+                          <div
+                            className={`text-[11px] font-mono ${mutedText} mt-0.5`}
+                          >
+                            {p.participantId}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div
-                            className={`font-bold text-lg ${darkPriceClass}`}
+                            className={`font-bold text-lg tabular-nums ${priceText}`}
                           >
                             ₹{p.totalNetWorth.toLocaleString()}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <Button
-                            size="sm"
-                            variant="destructive"
+                          <button
                             onClick={() => applyPenalty(p.participantId)}
-                            className="rounded-full px-5 hover:scale-105 transition-transform duration-200"
+                            title="Apply penalty"
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+                              isDark
+                                ? "bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50"
+                                : "bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+                            }`}
                           >
-                            <Shield className="h-3 w-3 mr-1" />
+                            <Shield className="h-3 w-3" strokeWidth={2.4} />
                             Penalty
-                          </Button>
+                          </button>
                         </td>
                       </motion.tr>
                     ))}
@@ -1043,11 +1347,9 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
         </Card>
       </motion.div>
 
-      {/* Analytics Sections */}
+      {/* ═══════════════════ ANALYTICS ═══════════════════ */}
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
+        <Card className={cardShell}>
           <CardContent className="p-0">
             <MostTradedPortfolio />
           </CardContent>
@@ -1055,46 +1357,54 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
       </motion.div>
 
       <motion.div variants={item}>
-        <Card
-          className={`rounded-2xl border transition-all duration-300 ${darkCardClass}`}
-        >
+        <Card className={cardShell}>
           <CardContent className="p-0">
             <MostDiversifiedPortfolio />
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Bump Percentage Dialog */}
+      {/* ═══════════════════ BUMP DIALOG ═══════════════════ */}
       <Dialog open={bumpDialogOpen} onOpenChange={setBumpDialogOpen}>
         <DialogContent
-          className={`sm:max-w-md ${isDark ? "bg-[#02060E] border-[#9303C5]/30" : ""}`}
+          className={`sm:max-w-md rounded-2xl ${
+            isDark
+              ? "bg-[#02060E] border-[#9303C5]/30"
+              : "bg-white border-gray-100"
+          }`}
         >
           <DialogHeader>
-            <DialogTitle className={`${darkTextClass}`}>
+            <DialogTitle className={strongText}>
               {bumpTarget?.sign === "+"
                 ? "📈 Increase Share Price"
                 : "📉 Decrease Share Price"}
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
-            <Input
-              type="number"
-              min={1}
-              placeholder="Enter percentage"
-              value={bumpValue}
-              onChange={(e) => setBumpValue(+e.target.value)}
-              className={`transition-all duration-200 focus:ring-2 rounded-xl ${
-                isDark
-                  ? "bg-[#02060E]/80 border-[#9303C5]/30 text-white focus:border-[#9303C5] focus:ring-[#9303C5]"
-                  : "focus:ring-purple-200 focus:border-purple-500"
-              }`}
-            />
-            <p className={`text-sm ${darkMutedTextClass}`}>
-              <AlertCircle className="h-3 w-3 inline mr-1" />
+            <div className="relative">
+              <Input
+                type="number"
+                min={1}
+                placeholder="Enter percentage"
+                value={bumpValue || ""}
+                onChange={(e) => setBumpValue(+e.target.value)}
+                className={`h-12 text-center text-lg font-bold tabular-nums pr-10 ${inputClass}`}
+              />
+              <span
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold ${mutedText}`}
+              >
+                %
+              </span>
+            </div>
+
+            <p className={`text-xs flex items-center gap-1.5 ${mutedText}`}>
+              <AlertCircle className="h-3.5 w-3.5" />
               Example: 5 means {bumpTarget?.sign}5% change
             </p>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => setBumpDialogOpen(false)}
@@ -1104,11 +1414,7 @@ const AdminDashboard = ({ user }: { user: AdminUser }) => {
             </Button>
             <Button
               onClick={confirmBump}
-              className={`rounded-full ${
-                isDark
-                  ? "bg-gradient-to-r from-[#9303C5] to-[#6b02b3] hover:shadow-lg hover:shadow-[#9303C5]/50"
-                  : "bg-gradient-to-r from-purple-600 to-indigo-600"
-              }`}
+              className={`rounded-full ${primaryBtnClass}`}
             >
               Confirm
             </Button>
