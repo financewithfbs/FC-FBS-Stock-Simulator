@@ -102,7 +102,5 @@ Backend:
 * **Live Leaderboard View**
 * **Share Market View**
   
------------------------------------------------------------------------------------------------------
-IMP : **This Project was delivered to an actual client and was made client requirement specific.**
------------------------------------------------------------------------------------------------------
+
 
